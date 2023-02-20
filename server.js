@@ -3,7 +3,7 @@
 *  I declare that this assignment is my own work in accordance with Seneca  Academic Policy.  No part *  of this assignment has been copied manually or electronically from any other source 
 *  (including 3rd party web sites) or distributed to other students.
 * 
-*  Name: Eshban Artemas Student ID: 15769218 Date: 02-01-2023
+*  Name: Eshban Artemas Student ID: 15769218 Date: 02-18-2023
 *
 *  Online (Cyclic) Link: https://odd-red-kingfisher-boot.cyclic.app/about
 ********************************************************************************/ 
@@ -57,7 +57,7 @@ app.get("/blog", (req, res)=> {
 });
 
 // -------------------POSTS--------------------------------------------
-app.get("/posts", (req, res)=> {
+/*app.get("/posts", (req, res)=> {
   blogService.getAllPosts()
   .then((posts) => {
       res.send(posts);
@@ -67,6 +67,59 @@ app.get("/posts", (req, res)=> {
       
   });
 });
+
+app.get("/posts", function(req, res) {
+  let queryPromise = null;
+
+  // by category query 
+  if (req.query.category) {
+      queryPromise = blogService.getPostsByCategory(req.query.category);
+      // by mindate Query 
+  } else if (req.query.minDate) {
+      queryPromise = blogService.getPostsByMinDate(req.query.minDate);
+      //all posts 
+  } else {
+      queryPromise = blogService.getAllPosts()
+  }
+
+  queryPromise.then(data => {
+      res.send(data)
+  }).catch(err => {
+      res.render("No Posts Found");
+  })
+});*/
+app.get("/posts", function(req, res) {
+  let queryPromise = null;
+
+  // by category query 
+  if (req.query.category) {
+      queryPromise = blogService.getPostsByCategory(req.query.category);
+      // by mindate Query 
+  } else if (req.query.minDate) {
+      queryPromise = blogService.getPostsByMinDate(req.query.minDate);
+      //all posts 
+  } else {
+      queryPromise = blogService.getAllPosts()
+  }
+
+  queryPromise.then(data => {
+      res.send(data)
+  }).catch(err => {
+      res.render("No Posts Found");
+  })
+});
+
+app.get("/categories", function(req, res) {
+  blogService.getCategories()
+      .then((categories) => {
+          res.send(categories);
+      })
+      .catch((err) => {
+          res.send({ message: err });
+      });
+});
+
+
 
 // -------------------CATEGORIES--------------------------------------------
 app.get("/categories", (req, res) =>{
@@ -80,40 +133,80 @@ app.get("/categories", (req, res) =>{
 });
 
 // -------------------Add Posts--------------------------------------------
-app.get("/posts/add", (req, res) => {
+app.get("/posts", function(req, res) {
+  let queryPromise = null;
+
+  //---------By category----------------  
+  if (req.query.category) {
+      queryPromise = blogService.getPostsByCategory(req.query.category);
+      
+      //------By mindate-----------  
+  } else if (req.query.minDate) {
+      queryPromise = blogService.getPostsByMinDate(req.query.minDate);
+      
+      //---------All posts-------------- 
+  } else {
+      queryPromise = blogService.getAllPosts()
+  }
+
+  queryPromise.then(data => {
+      res.send(data)
+  }).catch(err => {
+      res.render("No Posts Found");
+  })
+});
+
+app.get("/categories", function(req, res) {
+  blogService.getCategories()
+      .then((categories) => {
+          res.send(categories);
+      })
+      .catch((err) => {
+          res.send({ message: err });
+      });
+});
+
+app.get('/posts/add', (req, res) => {
   res.sendFile(path.join(__dirname, "/views/addPost.html"));
 });
 
-app.post("/posts/add", upload.single("featureImage"),(req, res) => {
+app.post("/posts/add", upload.single("featureImage"), (req, res) => {
+
   let streamUpload = (req) => {
-    return new Promise((resolve, reject) => {
-        let stream = cloudinary.uploader.upload_stream(
-            (error, result) => {
-            if (result) {
-                resolve(result);
-            } else {
-                reject(error);
-            }
-            }
-        );
+      return new Promise((resolve, reject) => {
+          let stream = cloudinary.uploader.upload_stream(
+              (error, result) => {
+                  if (result) {
+                      resolve(result);
+                  } else {
+                      reject(error);
+                  }
+              }
+          );
 
-        streamifier.createReadStream(req.file.buffer).pipe(stream);
-    });
-};
-//async is a nicer way to write promises
+          streamifier.createReadStream(req.file.buffer).pipe(stream);
+      });
+  };
 
-async function upload(req) {
-    let result = await streamUpload(req);
-    console.log(result);
-    return result;
-}
+  async function upload(req) {
+      let result = await streamUpload(req);
+      console.log(result);
+      return result;
+  }
 
-upload(req).then((uploaded)=>{
-    req.body.featureImage = uploaded.url;
+  upload(req).then((uploaded) => {
+      req.body.featureImage = uploaded.url;
+      // TODO: Process the req.body and add it as a new Blog Post before redirecting to /posts
 
-    addPost(postData)// TODO: Process the req.body and add it as a new Blog Post before redirecting to /posts
+      var postData = req.body;
+      blogService.addPost(postData).then(data => {
+          res.redirect('/posts');
+      }).catch(err => {
+          res.send(err);
+      });
 
-});
+
+  });
 
 
 });
