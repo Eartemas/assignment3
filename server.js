@@ -5,17 +5,30 @@
 * 
 *  Name: Eshban Artemas Student ID: 15769218 Date: 02-01-2023
 *
-*  Online (Cyclic) Link: ________________________________________________________
-*
+*  Online (Cyclic) Link: https://odd-red-kingfisher-boot.cyclic.app/about
 ********************************************************************************/ 
 
+const express = require('express');
+const app = express();
+const path = require("path");
+const blogService = require("./blog-service");
 
-var express = require('express');
-var app = express();
-var path = require("path");
-var blogService = require("./blog-service");
 
-var HTTP_PORT = process.env.PORT || 8080;
+const cloudinary = require ('cloudinary').v2;
+const multer = require("multer");
+const streamifier = require('streamifier');
+
+const HTTP_PORT = process.env.PORT || 8080;
+
+// Config
+cloudinary.config({
+  cloud_name: "dcnqjksuy",
+  api_key: "766462514461559",
+  api_secret: "3dbjFYbmwgZ2PWI5zPyXrBmGm8c",
+  secure: true,
+})
+
+const upload = multer(); // upload variable with no disk storage {storage:storage}
 
 function onHttpStart(){
   console.log("Express http server listening on:  "+ HTTP_PORT);
@@ -28,12 +41,12 @@ app.get('/', (req, res) => {
 });
 
 // -------------------ABOUT--------------------------------------------
-app.get("/about",function(req,res){
+app.get("/about",(req,res)=>{
   res.sendFile(path.join(__dirname,"/views/about.html"));
 });
 
 // -------------------BLOG--------------------------------------------
-app.get("/blog", function(req, res) {
+app.get("/blog", (req, res)=> {
   blogService.getPublishedPosts()
   .then((posts) => {
       res.send(posts);
@@ -44,7 +57,7 @@ app.get("/blog", function(req, res) {
 });
 
 // -------------------POSTS--------------------------------------------
-app.get("/posts", function(req, res) {
+app.get("/posts", (req, res)=> {
   blogService.getAllPosts()
   .then((posts) => {
       res.send(posts);
@@ -56,7 +69,7 @@ app.get("/posts", function(req, res) {
 });
 
 // -------------------CATEGORIES--------------------------------------------
-app.get("/categories", function(req, res) {
+app.get("/categories", (req, res) =>{
   blogService.getCategories()
   .then((categories) => {
   res.send(categories);
@@ -65,6 +78,46 @@ app.get("/categories", function(req, res) {
     res.send({message: err});
   });
 });
+
+// -------------------Add Posts--------------------------------------------
+app.get("/posts/add", (req, res) => {
+  res.sendFile(path.join(__dirname, "/views/addPost.html"));
+});
+
+app.post("/posts/add", upload.single("featureImage"),(req, res) => {
+  let streamUpload = (req) => {
+    return new Promise((resolve, reject) => {
+        let stream = cloudinary.uploader.upload_stream(
+            (error, result) => {
+            if (result) {
+                resolve(result);
+            } else {
+                reject(error);
+            }
+            }
+        );
+
+        streamifier.createReadStream(req.file.buffer).pipe(stream);
+    });
+};
+//async is a nicer way to write promises
+
+async function upload(req) {
+    let result = await streamUpload(req);
+    console.log(result);
+    return result;
+}
+
+upload(req).then((uploaded)=>{
+    req.body.featureImage = uploaded.url;
+
+    addPost(postData)// TODO: Process the req.body and add it as a new Blog Post before redirecting to /posts
+
+});
+
+
+});
+
 
 // 404
 app.get("*",(req,res)=>{
