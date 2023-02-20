@@ -57,47 +57,16 @@ app.get("/blog", (req, res)=> {
 });
 
 // -------------------POSTS--------------------------------------------
-/*app.get("/posts", (req, res)=> {
-  blogService.getAllPosts()
-  .then((posts) => {
-      res.send(posts);
-  })
-  .catch((err) => {
-      res.send({message: err});
-      
-  });
-});
-
 app.get("/posts", function(req, res) {
   let queryPromise = null;
 
-  // by category query 
+  //--------------By Category-------------------
   if (req.query.category) {
       queryPromise = blogService.getPostsByCategory(req.query.category);
-      // by mindate Query 
+      //---------BY Min Date--------- 
   } else if (req.query.minDate) {
       queryPromise = blogService.getPostsByMinDate(req.query.minDate);
-      //all posts 
-  } else {
-      queryPromise = blogService.getAllPosts()
-  }
-
-  queryPromise.then(data => {
-      res.send(data)
-  }).catch(err => {
-      res.render("No Posts Found");
-  })
-});*/
-app.get("/posts", function(req, res) {
-  let queryPromise = null;
-
-  // by category query 
-  if (req.query.category) {
-      queryPromise = blogService.getPostsByCategory(req.query.category);
-      // by mindate Query 
-  } else if (req.query.minDate) {
-      queryPromise = blogService.getPostsByMinDate(req.query.minDate);
-      //all posts 
+      //----------All Posts---------------------- 
   } else {
       queryPromise = blogService.getAllPosts()
   }
@@ -136,15 +105,15 @@ app.get("/categories", (req, res) =>{
 app.get("/posts", function(req, res) {
   let queryPromise = null;
 
-  //---------By category----------------  
+  //---------By Category----------------  
   if (req.query.category) {
       queryPromise = blogService.getPostsByCategory(req.query.category);
       
-      //------By mindate-----------  
+      //------By Min Date-----------  
   } else if (req.query.minDate) {
       queryPromise = blogService.getPostsByMinDate(req.query.minDate);
       
-      //---------All posts-------------- 
+      //---------All Posts-------------- 
   } else {
       queryPromise = blogService.getAllPosts()
   }

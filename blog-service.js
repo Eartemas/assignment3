@@ -50,6 +50,7 @@ module.exports.getCategories=function() {
     });
 }
 
+//---------------GET PUBLISHED POSTS---------------------------------------
 module.exports.getPublishedPosts=function(){
     return new Promise((resolve,reject)=>{
         let publishedPosts = posts.filter(post => post.published === true);
@@ -62,3 +63,65 @@ module.exports.getPublishedPosts=function(){
 
 })
 }
+
+//---------------GET POSTS BY CATEGORY---------------------------------------
+module.exports.getPostsByCategory = (category) => {
+    return new Promise(function(resolve, reject) {
+        const df = fs.readFileSync('./data/posts.json');
+        var publishedPosts = JSON.parse(df);
+        var filtered = publishedPosts.filter(a => a.category == category);
+        if (filtered.length > 0) {
+            resolve(filtered);
+        } else {
+            reject("no result returned");
+        }
+    });
+};
+
+//---------------GET POSTS BY MIN DATE---------------------------------------
+module.exports.getPostsByMinDate = (minDateStr) => {
+    return new Promise((resolve, reject) => {
+        const df = fs.readFileSync('./data/posts.json');
+        var publishedPosts = JSON.parse(df);
+        var filtered = publishedPosts.filter(a => new Date(a.postDate) >= new Date(minDateStr));
+        if (filtered.length > 0) {
+            resolve(filtered);
+        } else {
+            reject("no result returned");
+        }
+
+    });
+}
+
+//---------------GET POSTS BY ID ---------------------------------------
+module.exports.getPostById = (id) => {
+    return new Promise((resolve, reject) => {
+        const df = fs.readFileSync('./data/posts.json');
+        var publishedPosts = JSON.parse(df);
+        var filtered = publishedPosts.filter(a => a.id == id);
+        if (filtered.length > 0) {
+            resolve(filtered);
+        } else {
+            reject("no result returned");
+        }
+
+    });
+}
+
+
+//TODO Part2 step3
+//const posts = require('./posts');
+
+function addPost(postData) {
+  return new Promise(function (resolve, reject) {
+    if (postData.published == undefined) {
+      postData.published = false;
+    } else {
+      postData.published = true;
+    }
+    postData.id = posts.length + 1;
+    posts.push(postData);
+    resolve(posts);
+});
+}
+module.exports.addPost = addPost;
